@@ -58,9 +58,7 @@
       }
     }
 
-    function handleMouseInput(event: MouseEvent) {
-      event.preventDefault();
-
+    function handleMouseInput() {
       let cellType = CellType.Sand; // Default to Sand
       if (p.mouseButton === p.RIGHT) {
         cellType = CellType.Water;
@@ -84,9 +82,6 @@
         place(radius, col, row, cellType);
       }
     }
-
-    p.mouseDragged = handleMouseInput;
-    p.mouseClicked = handleMouseInput;
 
     p.draw = () => {
       p.background(0); // Set a light gray background
@@ -202,6 +197,10 @@
               break;
           }
         }
+      }
+
+      if (p.mouseIsPressed) {
+        handleMouseInput();
       }
 
       for (let i = 0; i < cols; i++) {
