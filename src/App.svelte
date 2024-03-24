@@ -302,7 +302,6 @@
                 orangeShades[Math.floor(Math.random() * orangeShades.length)]; // Randomly select an orange shade
               p.fill(randomOrange); // Apply the randomly selected orange shade
               break;
-            // make it so that "some" lava cells flucuate, kinda like cool
             case CellType.Lava:
               // Dynamically fluctuate lava colors based on position for a more varied effect
               // make it even more orange
