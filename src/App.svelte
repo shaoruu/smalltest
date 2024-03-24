@@ -44,12 +44,12 @@
       radius = p.floor(radius);
     };
 
-    function place(radius: number, x: number, y: number, type: CellType) {
+    function place(radius: number, col: number, row: number, type: CellType) {
       for (let i = -radius; i <= radius; i++) {
         for (let j = -radius; j <= radius; j++) {
-          if (p.dist(x, y, x + i, y + j) <= radius) {
-            const newX = x + i;
-            const newY = y + j;
+          if (p.dist(col, row, col + i, row + j) <= radius) {
+            const newX = col + i;
+            const newY = row + j;
             if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
               grid[newX][newY] = type;
             }
@@ -59,16 +59,16 @@
     }
 
     function handleMouseInput() {
-      let cellType = CellType.Sand; // Default to Sand
-      if (p.mouseButton === p.RIGHT) {
+      let cellType = CellType.Sand;
+      if (p.key === 'w') {
         cellType = CellType.Water;
       } else if (p.mouseButton === p.CENTER) {
-        cellType = CellType.Dirt;
+        cellType = CellType.Empty;
       } else if (p.key === 'g') {
         cellType = CellType.Grass;
       } else if (p.key === 'r') {
         cellType = CellType.Rock;
-      } else if (p.key === 'w') {
+      } else if (p.key === 'o') {
         cellType = CellType.Wood;
       } else if (p.key === 'f') {
         cellType = CellType.Fire;
@@ -199,9 +199,7 @@
         }
       }
 
-      if (p.mouseIsPressed) {
-        handleMouseInput();
-      }
+      p.mouseIsPressed && handleMouseInput();
 
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
@@ -216,7 +214,7 @@
               p.fill(64, 164, 223, 120); // Enhanced color for Water cells
               break;
             case CellType.Grass:
-              p.fill('#60A917'); // Enhanced color for Grass cells
+              p.fill(96, 169, 23); // Enhanced color for Grass cells using RGB values
               break;
             case CellType.Leaves:
               p.fill('rgba(76, 175, 80, 0.5)'); // Semi-transparent different green for Leaves cells
