@@ -3,7 +3,7 @@
 
   enum CellType {
     Empty,
-    Dirt,
+    Stone,
     Sand,
     Water,
     Grass,
@@ -25,14 +25,11 @@
       cols = p.floor(p.windowWidth / cellSize);
       rows = p.floor(p.windowHeight / cellSize);
 
-      for (let i = 0; i < cols; i++) {
-        grid[i] = [];
-        for (let j = 0; j < rows; j++) {
-          if (j >= rows - 3) {
-            grid[i][j] = CellType.Dirt;
-          } else {
-            grid[i][j] = CellType.Empty;
-          }
+      for (let colIndex = 0; colIndex < cols; colIndex++) {
+        grid[colIndex] = [];
+        for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
+          grid[colIndex][rowIndex] =
+            rowIndex >= rows - 3 ? CellType.Stone : CellType.Empty;
         }
       }
     };
@@ -44,26 +41,43 @@
       radius = p.floor(radius);
     };
 
-    function place(radius: number, col: number, row: number, type: CellType) {
-      for (let i = -radius; i <= radius; i++) {
-        for (let j = -radius; j <= radius; j++) {
-          if (p.dist(col, row, col + i, row + j) <= radius) {
-            const newX = col + i;
-            const newY = row + j;
-            if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
-              grid[newX][newY] = type;
+    function place(
+      radius: number,
+      col: number,
+      row: number,
+      type: CellType,
+      chance = 0.2,
+    ): void {
+      for (let xOffset = -radius; xOffset <= radius; xOffset++) {
+        for (let yOffset = -radius; yOffset <= radius; yOffset++) {
+          if (p.dist(col, row, col + xOffset, row + yOffset) <= radius) {
+            const targetCol = col + xOffset;
+            const targetRow = row + yOffset;
+            if (
+              p.random() < chance &&
+              targetCol >= 0 &&
+              targetCol < cols &&
+              targetRow >= 0 &&
+              targetRow < rows
+            ) {
+              grid[targetCol][targetRow] = type;
             }
           }
         }
       }
     }
 
+    let cellType = CellType.Stone;
+
     function handleMouseInput() {
-      let cellType = CellType.Sand;
-      if (p.key === 'w') {
-        cellType = CellType.Water;
-      } else if (p.mouseButton === p.CENTER) {
+      if (p.mouseButton === p.CENTER) {
         cellType = CellType.Empty;
+      } else if (p.key === 'w') {
+        cellType = CellType.Water;
+      } else if (p.key === 's') {
+        cellType = CellType.Sand;
+      } else if (p.key === 'q') {
+        cellType = CellType.Stone;
       } else if (p.key === 'g') {
         cellType = CellType.Grass;
       } else if (p.key === 'r') {
@@ -204,8 +218,8 @@
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
           switch (grid[i][j]) {
-            case CellType.Dirt:
-              p.fill('#8C6A5D'); // Enhanced color for Dirt cells
+            case CellType.Stone:
+              p.fill('#707070'); // Grayer color for Stone cells
               break;
             case CellType.Sand:
               p.fill('#EADFB4'); // Enhanced color for Sand cells
