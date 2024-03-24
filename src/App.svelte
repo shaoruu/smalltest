@@ -9,6 +9,7 @@
     Grass,
     Rock,
     Wood,
+    Lava,
     Leaves,
     Fire,
   }
@@ -88,6 +89,8 @@
         cellType = CellType.Fire;
       } else if (p.key === 'l') {
         cellType = CellType.Leaves;
+      } else if (p.key === 'v') {
+        cellType = CellType.Lava;
       }
 
       const col = Math.floor(p.mouseX / cellSize);
@@ -209,6 +212,35 @@
                 }
               }
               break;
+            case CellType.Lava:
+              // Check for water around lava to turn it into stone, including horizontally
+              let turnedToStone = false;
+              for (let dx = -1; dx <= 1 && !turnedToStone; dx++) {
+                for (let dy = -1; dy <= 1 && !turnedToStone; dy++) {
+                  if (dx === 0 && dy === 0) continue; // Skip the lava cell itself
+                  let nx = i + dx;
+                  let ny = j + dy;
+                  if (
+                    nx >= 0 &&
+                    nx < cols &&
+                    ny >= 0 &&
+                    ny < rows &&
+                    grid[nx][ny] === CellType.Water
+                  ) {
+                    grid[i][j] = CellType.Stone;
+                    turnedToStone = true;
+                  }
+                }
+              }
+              // If not turned to stone, simulate slow lava flow downwards
+              if (!turnedToStone && Math.random() < 0.02) {
+                // 2% chance for lava to move
+                if (j < rows - 1 && grid[i][j + 1] === CellType.Empty) {
+                  grid[i][j] = CellType.Empty;
+                  grid[i][j + 1] = CellType.Lava;
+                }
+              }
+              break;
           }
         }
       }
@@ -244,6 +276,35 @@
               const randomOrange =
                 orangeShades[Math.floor(Math.random() * orangeShades.length)]; // Randomly select an orange shade
               p.fill(randomOrange); // Apply the randomly selected orange shade
+              break;
+            // make it so that "some" lava cells flucuate, kinda like cool
+            case CellType.Lava:
+              // Dynamically fluctuate lava colors based on position for a more varied effect
+              // make it even more orange
+              const dynamicLavaColors = [
+                '#FF4500',
+                '#FF0000',
+                '#FF0000',
+                '#FF4500',
+                '#FF0000',
+                '#FF6347',
+                '#FF4500',
+                '#FF0000',
+                '#FF0000',
+                '#FF4500',
+                '#FF0000',
+                '#FF0000',
+                '#FF4500',
+                '#FF0000',
+                '#FF6347',
+                '#FF4500',
+                '#FF0000',
+                '#FF0000',
+              ]; // Expanded array of lava colors
+              const dynamicIndex =
+                (i + j + Math.floor(p.frameCount / dynamicLavaColors.length)) %
+                dynamicLavaColors.length; // Change color more frequently and based on cell position
+              p.fill(dynamicLavaColors[dynamicIndex]); // Apply the dynamically selected lava color
               break;
             default:
               p.noFill(); // No fill for empty cells
