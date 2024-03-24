@@ -7,7 +7,6 @@
     Sand,
     Water,
     Grass,
-    Rock,
     Wood,
     Lava,
     Leaves,
@@ -81,8 +80,6 @@
         cellType = CellType.Stone;
       } else if (p.key === 'g') {
         cellType = CellType.Grass;
-      } else if (p.key === 'r') {
-        cellType = CellType.Rock;
       } else if (p.key === 'o') {
         cellType = CellType.Wood;
       } else if (p.key === 'f') {
@@ -247,26 +244,54 @@
 
       p.mouseIsPressed && handleMouseInput();
 
+      function addNoiseToColor(
+        color: p5.Color,
+        noiseLevel: number,
+        x: number,
+        y: number,
+        scale: number = 0.05,
+      ): p5.Color {
+        let noiseValue = p.noise(x * scale, y * scale) * noiseLevel;
+        let noisyColor = p.color(
+          p.red(color) + noiseValue - noiseLevel / 2,
+          p.green(color) + noiseValue - noiseLevel / 2,
+          p.blue(color) + noiseValue - noiseLevel / 2,
+          p.alpha(color),
+        );
+        return noisyColor;
+      }
+
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
           switch (grid[i][j]) {
             case CellType.Stone:
-              p.fill('#707070'); // Grayer color for Stone cells
+              const stoneColor = addNoiseToColor(p.color('#707070'), 100, i, j);
+              p.fill(stoneColor);
               break;
             case CellType.Sand:
-              p.fill('#EADFB4'); // Enhanced color for Sand cells
+              const sandColor = addNoiseToColor(
+                p.color(255, 255, 128),
+                200,
+                i,
+                j,
+              );
+              p.fill(sandColor);
               break;
             case CellType.Water:
-              p.fill(64, 164, 223, 120); // Enhanced color for Water cells
+              const waterColors = [
+                p.color(64, 164, 223, 120),
+                p.color(58, 158, 215, 120),
+                p.color(70, 170, 231, 120),
+              ];
+              const waterColorIndex =
+                (i + j + Math.floor(p.frameCount / 10)) % waterColors.length;
+              p.fill(waterColors[waterColorIndex]);
               break;
             case CellType.Grass:
               p.fill(96, 169, 23); // Enhanced color for Grass cells using RGB values
               break;
             case CellType.Leaves:
               p.fill('rgba(76, 175, 80, 0.5)'); // Semi-transparent different green for Leaves cells
-              break;
-            case CellType.Rock:
-              p.fill('#787878'); // Enhanced color for Rock cells
               break;
             case CellType.Wood:
               p.fill('#8B4513'); // Enhanced color for Wood cells
@@ -302,7 +327,7 @@
                 '#FF0000',
               ]; // Expanded array of lava colors
               const dynamicIndex =
-                (i + j + Math.floor(p.frameCount / dynamicLavaColors.length)) %
+                (i + j + Math.floor(p.frameCount / 25)) %
                 dynamicLavaColors.length; // Change color more frequently and based on cell position
               p.fill(dynamicLavaColors[dynamicIndex]); // Apply the dynamically selected lava color
               break;
