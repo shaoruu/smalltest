@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import p5 from 'p5';
+  import { onMount } from 'svelte';
   import * as THREE from 'three';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -44,14 +44,16 @@
 
     edges() {
       if (this.position.x > this.p.width) {
-        this.position.x = 0;
+        this.position.x = this.position.x % this.p.width;
       } else if (this.position.x < 0) {
-        this.position.x = this.p.width;
+        this.position.x =
+          this.p.width - (Math.abs(this.position.x) % this.p.width);
       }
       if (this.position.y > this.p.height) {
-        this.position.y = 0;
+        this.position.y = this.position.y % this.p.height;
       } else if (this.position.y < 0) {
-        this.position.y = this.p.height;
+        this.position.y =
+          this.p.height - (Math.abs(this.position.y) % this.p.height);
       }
     }
 
@@ -149,7 +151,9 @@
 
     show() {
       this.p.strokeWeight(1); // Adjusted stroke weight to be thinner
-      this.p.stroke('#FFEC9E'); // Changed stroke color to #FFEC9E
+
+      this.p.stroke((this.p.frameCount % 255) * 0.7 + 50);
+
       let angle = this.velocity.heading(); // Calculated the angle of the velocity
       this.p.push(); // Saved the current drawing settings
       this.p.translate(this.position.x, this.position.y); // Moved to the boid's position
@@ -167,7 +171,9 @@
       75,
       window.innerWidth / window.innerHeight,
     );
-    camera.position.z = 3;
+    camera.position.x = 0.25;
+    camera.position.y = -0.25;
+    camera.position.z = 0.25;
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -178,30 +184,34 @@
     document.body.appendChild(renderer.domElement);
 
     const canvasToDraw = document.createElement('canvas');
-    canvasToDraw.width = 400;
-    canvasToDraw.height = 400;
+    const canvasDimension = 2048;
+    canvasToDraw.width = canvasDimension;
+    canvasToDraw.height = canvasDimension;
+
     const canvasTexture = new THREE.CanvasTexture(canvasToDraw);
     canvasTexture.magFilter = THREE.NearestFilter;
     canvasTexture.minFilter = THREE.NearestFilter;
     canvasTexture.colorSpace = THREE.SRGBColorSpace;
 
+    const canvasMaterial = new THREE.MeshBasicMaterial({
+      map: canvasTexture,
+      side: THREE.DoubleSide,
+    });
+
     const plane = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({
-        map: canvasTexture,
-        side: THREE.DoubleSide,
-      }),
+      canvasMaterial,
     );
 
     scene.add(plane);
 
     const controls = new OrbitControls(camera, renderer.domElement);
 
-    const instance = new p5((p) => {
+    const instance = new p5((p: p5) => {
       const boids: Boid[] = [];
 
       p.setup = () => {
-        p.createCanvas(400, 400, canvasToDraw);
+        p.createCanvas(canvasDimension, canvasDimension, canvasToDraw);
 
         for (let i = 0; i < 100; i++) {
           boids.push(new Boid(p));
@@ -209,16 +219,23 @@
       };
 
       p.draw = () => {
-        p.background('#322C2B');
+        // p.background('#322C2B');
 
-        // p.noStroke();
-        // p.rectMode(p.CENTER);
-        // p.fill(p.random(255), p.random(255), p.random(255));
-        // p.rect(
-        //   p.random(p.width),
-        //   p.random(p.height),
-        //   p.random(p.height * 0.1, p.height * 0.5),
-        // );
+        if (p.frameCount % 25 === 0) {
+          p.noStroke();
+          p.rectMode(p.CENTER);
+          p.fill(
+            p.random(255),
+            p.random(255),
+            p.random(255),
+            p.random(200, 255),
+          );
+          p.rect(
+            p.random(p.width),
+            p.random(p.height),
+            p.random(p.height * 0.05, p.height * 0.5),
+          );
+        }
 
         boids.forEach((boid) => {
           boid.flock(boids);
@@ -229,6 +246,12 @@
 
         canvasTexture.needsUpdate = true;
       };
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
     let frame: any;
